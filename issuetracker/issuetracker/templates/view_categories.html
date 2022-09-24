@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block title %}Issue Tracker{% endblock %}
+{% block content %}
+    <h1>Categories</h1>
+    <h3>
+        <a href="categories/create">Create New Category</a>
+    </h3>
+    {% if categories.count > 0 %}
+        <ul>
+            {% for category in categories %}
+                <li>
+                    <div class="category">
+                        <h3>
+                            <a href="categories/{{ category.id }}">{{ category.name }}</a>
+                        </h3>
+                        <p class="creation_details">{{ category.get_creation_details }}</p>
+                        {% comment %} if admin, allow edit and delete {% endcomment %}
+                        {% if request.session.is_admin %}
+                            <a href="categories/{{ category.id }}/update">Edit</a>
+                            <a href="categories/{{ category.id }}/delete">Delete</a>
+                            {% comment %} if user made it, allow edit {% endcomment %}
+                        {% elif request.session.user_id == category.author_id %}
+                            <a href="categories/{{ category.id }}/update">Edit</a>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No categories found. Please create one.</p>
+    {% endif %}
+{% endblock content %}

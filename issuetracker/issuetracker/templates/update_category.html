@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}Update Category: {{ category.name }}{% endblock %}
+{% block content %}
+    <h1>Update Category: {{ category.name }}</h1>
+    <h3>
+        <a href="/categories">Back to category list</a>
+    </h3>
+    <form action="update" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="title">New Name</label>
+            <input type="text" name="title" id="title" placeholder="{{ category.name }}">
+        </div>
+        <input type="submit" value="Update">
+    </form>
+{% endblock content %}

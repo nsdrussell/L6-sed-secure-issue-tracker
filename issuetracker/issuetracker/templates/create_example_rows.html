@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block title %}Create example database rows{% endblock %}
+{% block content %}
+    <h1>Create example database rows</h1>
+    <h3>Are you sure you want to create example database rows? This will reset all existing data.</h3>
+    <p>
+        All users will be deleted, and two example users will be created:
+        <br>
+        <b>Username:</b> admin
+        <br>
+        <b>Password:</b> Password1
+        <br>
+        <b>Username:</b> user
+        <br>
+        <b>Password:</b> Password1
+        <br>
+    </p>
+    <p>Categories, issues, and comments will be created as well.</p>
+    <p>You will also be logged out if logged in already.</p>
+    <form action="{{ form_method }}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="Yes, I confirm.">
+    </form>
+{% endblock %}

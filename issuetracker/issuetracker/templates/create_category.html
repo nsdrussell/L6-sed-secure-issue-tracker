@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %}Issue Tracker{% endblock %}
+{% block content %}
+    <h1>Create a new Category</h1>
+    <h3>
+        <a href="/categories">Back to category list</a>
+    </h3>
+    <form action="create" method="post">
+        {% csrf_token %}
+        <label for="title">Title</label>
+        <input type="text" name="title" id="title">
+        <input type="submit" value="Create">
+    </form>
+{% endblock content %}

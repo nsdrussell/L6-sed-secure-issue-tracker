@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block title %}User Control Panel{% endblock %}
+{% block content %}
+    <h1>User Control Panel</h1>
+    <p>Hi {{ user.nickname }}!</p>
+    <p>Username = {{ user.username }}</p>
+    <p>Nickname = {{ user.nickname }}</p>
+    <p>Account created = {{ user.datetime_created }}</p>
+    {% if user.is_admin %}
+        <p>User is admin</p>
+    {% else %}
+        <p>User is not admin</p>
+    {% endif %}
+    <div>
+        <h3>Options</h3>
+        <a href="/user/change_nickname">Change Nickname</a>
+        <a href="/user/change_password">Change Password</a>
+    </div>
+{% endblock %}

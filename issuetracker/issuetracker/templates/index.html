@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %}Issue Tracker{% endblock %}
+{% block content %}
+    <h1>Issue tracker home</h1>
+    {% comment %} tell user if logged in {% endcomment %}
+    {% if request.session.is_authenticated %}
+        <p>You are logged in.</p>
+    {% else %}
+        <p>
+            You are not logged in. <a href="/login">Log in</a>
+        </p>
+    {% endif %}
+    <div style="padding-top: 30vh;">
+        <p>
+            <a href="static/issuetracker/IssueTracker_Help.pdf" target="_blank"/>View Help File</a>
+        </p>
+        <p>
+            <a href="create_example_rows"/>Create Example Database Rows</a>
+        </p>
+    </div>
+{% endblock %}

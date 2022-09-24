@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block title %}Change Nickname{% endblock %}
+{% block content %}
+    <h1>Change Nickname</h1>
+    <h3>
+        <a href="/user">Back to User Options</a>
+    </h3>
+    <p>{{ message }}</p>
+    <form action="/user/change_nickname" method="post">
+        <p>
+            <em>Please give something descriptive like "Firstname Lastname-Organisation Name"</em>
+        </p>
+        {% csrf_token %}
+        <fieldset>
+            <div class="form-group">
+                <label for="nickname">Nickname</label>
+                <input type="text"
+                       id="nickname"
+                       name="nickname"
+                       placeholder="{{ user.nickname }}">
+            </div>
+            <input type="submit" value="Change Nickname" />
+        </fieldset>
+    </form>
+{% endblock %}

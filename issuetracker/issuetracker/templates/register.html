@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+    <h1>Register</h1>
+    <p class="message_box">{{ message }}</p>
+    <form action="/register" method="post">
+        {% csrf_token %}
+        <p>
+            <em>All fields are required. Any spaces will be removed from the username.</em>
+        </p>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Username">
+        </div>
+        <p>
+            <em>Please give something descriptive like "Firstname Lastname-Organisation Name"</em>
+        </p>
+        <div class="form-group">
+            <label for="nickname">Nickname</label>
+            <input type="text" id="nickname" name="nickname" placeholder="Nickname">
+        </div>
+        <p>
+            <em>Password must be 8 characters minimum length, not contain the username, and must contain a number..</em>
+        </p>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Password">
+        </div>
+        <div class="form-group">
+            <label for="confirm">Confirm Password</label>
+            <input type="password"
+                   id="confirm_password"
+                   name="confirm_password"
+                   placeholder="Confirm Password">
+            <div class="form-group">
+                <label for="is_admin">Administrator user?</label>
+                <input type="checkbox" id="is_admin" name="is_admin">
+            </div>
+            <p>
+                <em>All fields are required.</em>
+            </p>
+            <button type="submit">Submit Registration</button>
+        </form>
+    {% endblock %}

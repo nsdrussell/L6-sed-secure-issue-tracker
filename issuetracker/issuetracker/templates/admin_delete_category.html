@@ -1,0 +1,6 @@
+{% extends "layout.html" %}
+{% block title %}Delete category {{ category.name }}?{% endblock %}
+{% block content %}
+    <h1>Delete category {{ category.name }}?</h1>
+    {% include '_delete_confirmation_partial.html' with form_method=form_method item=category.name %}
+{% endblock %}

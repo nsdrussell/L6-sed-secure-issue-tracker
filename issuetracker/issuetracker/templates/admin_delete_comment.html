@@ -1,0 +1,6 @@
+{% extends "layout.html" %}
+{% block title %}Delete comment?{% endblock %}
+{% block content %}
+    <h1>Delete comment?</h1>
+    {% include '_delete_confirmation_partial.html' with form_method=form_method item=comment.get_title_and_text %}
+{% endblock %}

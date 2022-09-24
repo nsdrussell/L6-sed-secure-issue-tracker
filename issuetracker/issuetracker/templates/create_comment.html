@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block title %}Create new issue{% endblock %}
+{% block content %}
+    <h1>Create new comment</h1>
+    <form method="post" action="create_comment" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="text">Comment Text</label>
+            <textarea id="text" name="text" rows="6" maxlength="512"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="image">Image (optional)</label>
+            <p>
+                <em>4mb max filesize, .png or .jpg accepted</em>
+            </p>
+            <input type="file" id="image" name="image" accept="image/png, image/jpg">
+        </div>
+        <button type="submit">Create</button>
+    </form>
+{% endblock %}

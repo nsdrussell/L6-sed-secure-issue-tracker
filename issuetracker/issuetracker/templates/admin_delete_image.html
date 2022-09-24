@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block title %}Delete image?{% endblock %}
+{% block content %}
+    <h1>Delete image {{ owner.image_filename }}?</h1>
+    <div class="issue-image">
+        <img src="/static/images/{{ owner.image_filename }}" alt="image">
+        <p>
+            <a href="/static/images/{{ owner.image_filename }}" target="_blank">Open image in new tab</a>
+        </p>
+    </div>
+    {% include '_delete_confirmation_partial.html' with form_method=form_method item=owner.image_filename %}
+{% endblock %}

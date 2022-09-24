@@ -1,0 +1,8 @@
+<h3>Are you sure you want to delete this?</h3>
+<p class="message_box"
+   style="border:1px solid black;
+          display: inline-block;">{{ item }}</p>
+<form action="{{ form_method }}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="Yes, I confirm.">
+</form>
