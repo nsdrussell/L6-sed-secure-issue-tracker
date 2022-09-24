@@ -1,2 +1,2 @@
 release: sh -c 'python manage.py makemigrations && python manage.py migrate'
-web: gunicorn issuetracker.wsgi
+web: gunicorn web_project.wsgi
