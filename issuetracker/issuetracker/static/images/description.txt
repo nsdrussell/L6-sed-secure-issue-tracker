@@ -1,0 +1,2 @@
+This file has been added to this folder so that the folder will be included in a git commit.
+It is not necessary for the functioning of the web application.
