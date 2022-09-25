@@ -564,7 +564,8 @@ def delete_issue(request, category_id, issue_id):
 
 def create_example_rows(request):
     if request.method == 'POST':
-        __set_session_vars(request, None, False)
+        if __check_user_is_authenticated(request):
+            __set_session_vars(request, None, False)
         # delete all users
         User.objects.all().delete()
 
