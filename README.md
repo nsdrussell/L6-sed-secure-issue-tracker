@@ -1,4 +1,4 @@
-# L5-sea-issue-tracker
+# L6-sed-secure-issue-tracker
 
 ## Installation Prerequisites
 - Python 3.10.5
