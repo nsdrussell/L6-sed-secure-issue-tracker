@@ -2,12 +2,13 @@
 
 ## Installation Prerequisites
 - Python 3.10.5
-- Django 4.10
+- Django 4.1
 
 ## Setup and running
 1. Download the source code.
 2. Open the directory /issuetracker/ within your IDE. If asked to install any packages, do so.
-3. Within a terminal window, from the /issuetracker/ directory, run the following commands to create a database and run the app.
+3. Otherwise, run pip install -r requirements.txt
+4. Within a terminal window, from the /issuetracker/ directory, run the following commands to create a database and run the app.
 ```
 python manage.py makemigrations
 python manage.py migrate
