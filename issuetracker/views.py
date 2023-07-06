@@ -749,8 +749,9 @@ def __get_image_upload_path():
 
 def __check_for_image_errors(image):
     error = ''
-    if image.size > 4194304:
-        error += 'Image filesize too big, please upload an image smaller than 4MB. '
+    #check image filesize smaller than 512kb
+    if image.size > 524288:
+        error += 'Image filesize too big, please upload an image smaller than 512kb. '
     return error
 
 
