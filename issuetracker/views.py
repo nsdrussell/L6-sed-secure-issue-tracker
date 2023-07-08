@@ -580,7 +580,7 @@ def create_example_rows(request):
         # example admin user
         admin_user = User()
         admin_user.username = 'admin'
-        admin_user.password = hashers.make_password('Password1')
+        admin_user.password = hashers.make_password('Password1#!')
         admin_user.is_admin = True
         admin_user.datetime_created = datetime.now()
         admin_user.nickname = 'Administrator User'
@@ -589,7 +589,7 @@ def create_example_rows(request):
         # example regular user
         regular_user = User()
         regular_user.username = 'user'
-        regular_user.password = hashers.make_password('Password1')
+        regular_user.password = hashers.make_password('Password1#!')
         regular_user.is_admin = False
         regular_user.datetime_created = datetime.now()
         regular_user.nickname = 'Regular User'
@@ -613,7 +613,7 @@ def create_example_rows(request):
 
         # example comment 1
         comment1 = Comment()
-        comment1.text = 'Try using the password "Password1" without the quotes.'
+        comment1.text = 'Try using the password "Password1#!" without the quotes.'
         comment1.author = regular_user
         comment1.datetime_created = datetime.now()
         comment1.parent_issue = issue1
