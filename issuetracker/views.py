@@ -441,7 +441,7 @@ def delete_comment(request, category_id, issue_id, comment_id):
     except User.DoesNotExist:
         raise Http404("Comment does not exist")
     if request.method == 'POST':
-        __delete_comment(comment_id)
+        comment.delete()
         return redirect('view_issue', category_id=category_id, issue_id=issue_id)
 # todo: make use of delete form
     form_method = request.path
@@ -456,9 +456,10 @@ def delete_issue(request, category_id, issue_id):
     except User.DoesNotExist:
         raise Http404("Issue does not exist")
     if request.method == 'POST':
-        __delete_issue(issue)
+        issue.delete()
         return redirect('view_category', category_id=category_id)
-# todo: make use of delete form
+    #todo investigate what this comment is referring to
+    # todo: make use of delete form
     form_method = request.path
     return render(request, 'admin_delete_issue.html', {'issue': issue, 'form_method': form_method})
 
@@ -472,7 +473,7 @@ def create_example_rows(request):
 
         # delete all other rows
         categories = Category.objects.all()
-        #no need to go through children as all should be deleted by virtue of being 
+        #no need to go through children as all should be deleted by model cascade
         for category in categories:
             category.delete()
 
@@ -621,16 +622,3 @@ def __set_session_vars(request, user, logging_in):
         del request.session['is_authenticated']
         del request.session['user_id']
         del request.session['is_admin']
-
-
-def __delete_issue(issue):
-    issue.delete()
-
-
-def __delete_comment(comment_id):
-    try:
-        comment = Comment.objects.get(pk=comment_id)
-    except Comment.DoesNotExist:
-        raise Http404("Comment does not exist")
-
-    comment.delete()
