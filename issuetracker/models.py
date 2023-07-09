@@ -10,14 +10,6 @@ class __HasCreationDate(models.Model):
         abstract = True
 
 
-# abstract class for models with an image
-class __HasImage(models.Model):
-    image_filename = models.CharField(max_length=128, blank=True)
-
-    class Meta:
-        abstract = True
-
-
 class User(__HasCreationDate):
     username = models.CharField(max_length=128)
     password = models.CharField(max_length=128)
@@ -46,13 +38,13 @@ class Category(__HasAuthorAndCreationDate, __HasCreationDate):
     name = models.CharField(max_length=128)
 
 
-class Issue(__HasAuthorAndCreationDate, __HasCreationDate, __HasImage):
+class Issue(__HasAuthorAndCreationDate, __HasCreationDate):
     title = models.CharField(max_length=128)
     parent_category = models.ForeignKey(Category, on_delete=models.CASCADE)
     description = models.CharField(max_length=512)
 
 
-class Comment(__HasAuthorAndCreationDate, __HasCreationDate, __HasImage):
+class Comment(__HasAuthorAndCreationDate, __HasCreationDate):
     parent_issue = models.ForeignKey(Issue, on_delete=models.CASCADE)
     text = models.CharField(max_length=512)
 

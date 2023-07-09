@@ -261,7 +261,7 @@ def view_category(request, category_id):
     return render(request, 'view_category.html', {'category': category, 'issues': issues})
 
 
-def delete_category_plus_children_plus_image_files(request, category_id):
+def delete_category_plus_children(request, category_id):
     if not __check_user_is_authenticated_admin(request):
         return redirect('/login')
     try:
@@ -269,11 +269,10 @@ def delete_category_plus_children_plus_image_files(request, category_id):
     except User.DoesNotExist:
         raise Http404("Category does not exist")
     if request.method == 'POST':
-        issues = Issue.objects.filter(parent_category_id=category_id)
-        # Delete child issues manually to make sure delete images + comment images.
-        # even though cascade FK constraint delete will delete child items, won't delete the images.
-        for issue in issues:
-            __delete_issue_plus_children_plus_image_files(issue)
+        #todo determine if this is needed
+        # issues = Issue.objects.filter(parent_category_id=category_id)
+        # for issue in issues:
+            # __delete_issue_plus_children(issue)
         category.delete()
         return redirect('/categories')
 # todo: add form
@@ -283,23 +282,11 @@ def delete_category_plus_children_plus_image_files(request, category_id):
 
 def create_issue(request, category_id):
     if request.method == 'POST':
-        form = forms.CreateIssueForm(request.POST, request.FILES)
+        form = forms.CreateIssueForm(request.POST)
         if form.is_valid():
-            # get filename from request.FILES
-            image_filename = ''
-            request_file = request.FILES.get('image')
-            if request_file is not None:
-                error = __check_for_image_errors(request_file)
-                if error == '':
-                    __handle_image_upload(request_file)
-                    image_filename = request_file.name
-                else:
-                    return HttpResponse(status=500, content='Error 500 invalid image - ' + error)
-
             parent_category = Category.objects.get(pk=category_id)
             issue = Issue.objects.create(title=form.data['title'],
                                          description=form.data['text'],
-                                         image_filename=image_filename,
                                          author=__get_user_from_request_user_id(
                                              request),
                                          parent_category=parent_category,
@@ -329,32 +316,16 @@ def update_issue(request, category_id, issue_id):
 
     messages = []
     if request.method == 'POST':
-        form = forms.UpdateIssueForm(request.POST, request.FILES)
+        form = forms.UpdateIssueForm(request.POST)
         if form.is_valid():
-            # get filename from request.FILES
-            image_filename = ''
-            request_file = request.FILES.get('image')
-            if request_file is not None:
-                error = __check_for_image_errors(request_file)
-                if error == '':
-                    __handle_image_upload(request_file)
-                    image_filename = request_file.name
-                else:
-                    messages.append('Error 500 invalid image - ' + error)
-
-            provided_image = image_filename != ''
             provided_title = form.data['title'] != ''
             provided_text = form.data['text'] != ''
 
-            if (not provided_image and not provided_text and
+            if (not provided_text and
                     not provided_title):
                 messages.append('Error: No new changes submit.')
 
             if len(messages) == 0:
-                if provided_image:
-                    # delete the old image
-                    __delete_image(issue.image_filename)
-                    issue.image_filename = image_filename
                 if provided_title:
                     issue.title = form.data['title']
                 if provided_text:
@@ -382,30 +353,14 @@ def update_comment(request, category_id, issue_id, comment_id):
 
     messages = []
     if request.method == 'POST':
-        form = forms.UpdateCommentForm(request.POST, request.FILES)
+        form = forms.UpdateCommentForm(request.POST)
         if form.is_valid():
-            # get filename from request.FILES
-            image_filename = ''
-            request_file = request.FILES.get('image')
-            if request_file is not None:
-                error = __check_for_image_errors(request_file)
-                if error == '':
-                    __handle_image_upload(request_file)
-                    image_filename = request_file.name
-                else:
-                    messages.append('Error 500 invalid image - ' + error)
-
-            provided_image = image_filename != ''
             provided_text = form.data['text'] != ''
 
-            if (not provided_image and not provided_text):
+            if (not provided_text):
                 messages.append('Error: No new changes submit.')
 
             if len(messages) == 0:
-                if provided_image:
-                    # delete the old image
-                    __delete_image(comment.image_filename)
-                    comment.image_filename = image_filename
                 if provided_text:
                     comment.text = form.data['text']
 
@@ -430,7 +385,7 @@ def update_category(request, category_id):
 
     messages = []
     if request.method == 'POST':
-        form = forms.UpdateCategoryForm(request.POST, request.FILES)
+        form = forms.UpdateCategoryForm(request.POST)
         if form.is_valid():
 
             provided_title = form.data['title'] != ''
@@ -466,22 +421,10 @@ def view_issue(request, category_id, issue_id):
 
 def create_comment(request, category_id, issue_id):
     if request.method == 'POST':
-        form = forms.CreateCommentForm(request.POST, request.FILES)
+        form = forms.CreateCommentForm(request.POST)
         if form.is_valid():
-            # get filename from request.FILES
-            image_filename = ''
-            request_file = request.FILES.get('image')
-            if request_file is not None:
-                error = __check_for_image_errors(request_file)
-                if error == '':
-                    __handle_image_upload(request_file)
-                    image_filename = request_file.name
-                else:
-                    return HttpResponse(status=500, content='Error 500 invalid image - ' + error)
-
             parent_issue = Issue.objects.get(pk=issue_id)
             Comment.objects.create(text=form.data['text'],
-                                   image_filename=image_filename,
                                    author=__get_user_from_request_user_id(
                                        request),
                                    parent_issue=parent_issue,
@@ -493,43 +436,6 @@ def create_comment(request, category_id, issue_id):
     return render(request, 'create_comment.html')
 
 
-def delete_comment_image(request, category_id, issue_id, comment_id):
-    # only admins have delete access
-    if not __check_user_is_authenticated_admin(request):
-        return redirect('/login')
-    try:
-        comment = Comment.objects.get(pk=comment_id)
-    except User.DoesNotExist:
-        raise Http404("Comment does not exist")
-    if request.method == 'POST':
-        # Delete image method to sure delete image files.
-        __delete_image(comment.image_filename)
-        comment.image_filename = ''
-        comment.save()
-        return redirect('view_issue', category_id=category_id, issue_id=issue_id)
-
-    form_method = request.path
-    return render(request, 'admin_delete_image.html', {'owner': comment, 'form_method': form_method})
-
-
-def delete_issue_image(request, category_id, issue_id):
-    if not __check_user_is_authenticated_admin(request):
-        return redirect('/login')
-    try:
-        issue = Issue.objects.get(pk=issue_id)
-    except User.DoesNotExist:
-        raise Http404("Issue does not exist")
-    if request.method == 'POST':
-        # Delete image method to sure delete image files.
-        __delete_image(issue.image_filename)
-        issue.image_filename = ''
-        issue.save()
-        return redirect('view_issue', category_id=category_id, issue_id=issue_id)
-
-    form_method = request.path
-    return render(request, 'admin_delete_image.html', {'owner': issue, 'form_method': form_method})
-
-
 def delete_comment(request, category_id, issue_id, comment_id):
     if not __check_user_is_authenticated_admin(request):
         return redirect('/login')
@@ -538,8 +444,7 @@ def delete_comment(request, category_id, issue_id, comment_id):
     except User.DoesNotExist:
         raise Http404("Comment does not exist")
     if request.method == 'POST':
-        # Delete image method to sure delete image files.
-        __delete_comment_plus_image_file(comment_id)
+        __delete_comment(comment_id)
         return redirect('view_issue', category_id=category_id, issue_id=issue_id)
 # todo: make use of delete form
     form_method = request.path
@@ -554,8 +459,7 @@ def delete_issue(request, category_id, issue_id):
     except User.DoesNotExist:
         raise Http404("Issue does not exist")
     if request.method == 'POST':
-        # Delete image method to sure delete image files.
-        __delete_issue_plus_children_plus_image_files(issue)
+        __delete_issue_plus_children(issue)
         return redirect('view_category', category_id=category_id)
 # todo: make use of delete form
     form_method = request.path
@@ -574,7 +478,7 @@ def create_example_rows(request):
         for category in categories:
             issues = Issue.objects.filter(parent_category_id=category.id)
             for issue in issues:
-                __delete_issue_plus_children_plus_image_files(issue)
+                __delete_issue_plus_children(issue)
             category.delete()
 
         # example admin user
@@ -724,64 +628,18 @@ def __set_session_vars(request, user, logging_in):
         del request.session['is_admin']
 
 
-def __delete_issue_plus_children_plus_image_files(issue):
+def __delete_issue_plus_children(issue):
     comments = Comment.objects.filter(parent_issue_id=issue.id)
     for comment in comments:
-        __delete_comment_plus_image_file(comment.id)
+        __delete_comment(comment.id)
 
-    __delete_image(issue.image_filename)
     issue.delete()
 
 
-def __delete_comment_plus_image_file(comment_id):
+def __delete_comment(comment_id):
     try:
         comment = Comment.objects.get(pk=comment_id)
     except Comment.DoesNotExist:
         raise Http404("Comment does not exist")
 
-    __delete_image(comment.image_filename)
     comment.delete()
-
-
-def __get_image_upload_path():
-    return os.path.join(BASE_DIR, 'issuetracker\\static\\images\\')
-
-
-def __check_for_image_errors(image):
-    error = ''
-    #check image filesize smaller than 512kb
-    if image.size > 524288:
-        error += 'Image filesize too big, please upload an image smaller than 512kb. '
-    return error
-
-
-def __handle_image_upload(image):
-    image.name = image.name.replace(' ', '_')
-    # get next available filename
-    image_upload_path = __get_image_upload_path()
-    filepath = image_upload_path+image.name
-    if os.path.isfile(filepath):
-        # get next available filename and split it if necessary to get below 128 chars
-        filename_only, file_extension_only = os.path.splitext(image.name)
-        counter = str_counter_length = 1
-        file_extension_length = len(file_extension_only)
-
-        # algorithm to get next available filename as described above. basically just increment the counter until the filename is available
-        while os.path.isfile(image_upload_path+filename_only[0:128-str_counter_length-file_extension_length]+str(counter)+file_extension_only):
-            counter += 1
-            str_counter_length = len(str(counter))
-
-        image.name = filename_only[0:128-str_counter_length -
-                                   file_extension_length]+str(counter)+file_extension_only
-        filepath = image_upload_path+image.name
-
-    with open(filepath, 'wb+') as destination:
-        for chunk in image.chunks():
-            destination.write(chunk)
-
-
-def __delete_image(image_filename):
-    image_upload_path = __get_image_upload_path()
-    filepath = image_upload_path+image_filename
-    if os.path.isfile(filepath):
-        os.remove(filepath)

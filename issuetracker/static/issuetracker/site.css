@@ -112,32 +112,6 @@ td {
     margin-top: 2vh;
 }
 
-.issue-image {
-    border: 1px solid black;
-    border-radius: 2vh;
-    padding: 1vh;
-    max-width: fit-content;
-}
-
-.issue-image>img {
-    max-height: 15vh;
-    border-radius: 1vh;
-    display: inline-block;
-}
-
-.comment-image {
-    border: 1px solid black;
-    border-radius: 2vh;
-    padding: 1vh;
-    max-width: fit-content;
-}
-
-.comment-image>img {
-    max-height: 12vh;
-    border-radius: 1vh;
-    display: inline-block;
-}
-
 .creation_details {
     font-size: 0.8em;
     color: darkslategray;
@@ -155,13 +129,6 @@ td {
 .auth_options {
     margin-right: 20vh;
     float: right;
-}
-
-.user_profile_picture {
-    border-radius: 40%;
-    max-height: 12vh;
-    max-width: 12vh;
-    display: inline-block;
 }
 
 .message_box {

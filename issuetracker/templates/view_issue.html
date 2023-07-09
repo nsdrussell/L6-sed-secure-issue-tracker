@@ -10,17 +10,6 @@
         <p class="creation_details">{{ issue.get_creation_details }}</p>
         <h4 style="margin:0">Description:</h4>
         <p class="message_box">{{ issue.description }}</p>
-        {% if issue.image_filename != '' %}
-            <div class="issue-image">
-                <img src="/static/images/{{ issue.image_filename }}" alt="image">
-                <p>
-                    <a href="/static/images/{{ issue.image_filename }}" target="_blank">Open image in new tab</a>
-                </p>
-                {% comment %} todo switch to form {% endcomment %}
-                {% if request.session.is_admin %}<a href="{{ issue.id }}/delete_image">Delete Image</a>{% endif %}
-            </form>
-        </div>
-    {% endif %}
     {% comment %} if admin, allow edit and delete {% endcomment %}
     {% if request.session.is_admin %}
         <a href="{{ issue.id }}/update">Edit</a>
@@ -41,17 +30,6 @@
                         <p class="message_box">{{ comment.text }}</p>
                     </li>
                 </div>
-                {% if comment.image_filename != '' %}
-                    <div class="comment-image">
-                        <img src="/static/images/{{ comment.image_filename }}" alt="image">
-                        <p>
-                            <a href="/static/images/{{ comment.image_filename }}" target="_blank">Open image in new tab</a>
-                        </p>
-                        {% if request.session.is_admin %}
-                            <a href="{{ issue.id }}/comments/{{ comment.id }}/delete_image">Delete Image</a>
-                        {% endif %}
-                    </div>
-                {% endif %}
                 {% if request.session.is_admin %}
                     <a href="{{ issue.id }}/comments/{{ comment.id }}/update">Edit</a>
                     <a href="{{ issue.id }}/comments/{{ comment.id }}/delete">Delete</a>
