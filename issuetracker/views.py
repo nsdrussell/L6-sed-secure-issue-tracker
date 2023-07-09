@@ -261,7 +261,7 @@ def view_category(request, category_id):
     return render(request, 'view_category.html', {'category': category, 'issues': issues})
 
 
-def delete_category_plus_children(request, category_id):
+def delete_category(request, category_id):
     if not __check_user_is_authenticated_admin(request):
         return redirect('/login')
     try:
@@ -269,13 +269,10 @@ def delete_category_plus_children(request, category_id):
     except User.DoesNotExist:
         raise Http404("Category does not exist")
     if request.method == 'POST':
-        #todo determine if this is needed
-        # issues = Issue.objects.filter(parent_category_id=category_id)
-        # for issue in issues:
-            # __delete_issue_plus_children(issue)
         category.delete()
         return redirect('/categories')
-# todo: add form
+    # todo investigate what the following comment means
+    # todo: add form
     form_method = request.path
     return render(request, 'admin_delete_category.html', {'category': category, 'form_method': form_method})
 
@@ -459,7 +456,7 @@ def delete_issue(request, category_id, issue_id):
     except User.DoesNotExist:
         raise Http404("Issue does not exist")
     if request.method == 'POST':
-        __delete_issue_plus_children(issue)
+        __delete_issue(issue)
         return redirect('view_category', category_id=category_id)
 # todo: make use of delete form
     form_method = request.path
@@ -475,10 +472,8 @@ def create_example_rows(request):
 
         # delete all other rows
         categories = Category.objects.all()
+        #no need to go through children as all should be deleted by virtue of being 
         for category in categories:
-            issues = Issue.objects.filter(parent_category_id=category.id)
-            for issue in issues:
-                __delete_issue_plus_children(issue)
             category.delete()
 
         # example admin user
@@ -628,11 +623,7 @@ def __set_session_vars(request, user, logging_in):
         del request.session['is_admin']
 
 
-def __delete_issue_plus_children(issue):
-    comments = Comment.objects.filter(parent_issue_id=issue.id)
-    for comment in comments:
-        __delete_comment(comment.id)
-
+def __delete_issue(issue):
     issue.delete()
 
 
