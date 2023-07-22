@@ -2,9 +2,6 @@ from django import forms
 
 
 # base forms
-class __ImageForm(forms.Form):
-    image = forms.ImageField(label='Image', max_length=128, required=False)
-
 
 class __TextForm(forms.Form):
     text = forms.CharField(label='Description', max_length=512, required=True)
@@ -48,19 +45,15 @@ class ChangePasswordForm(forms.Form):
         max_length=128, widget=forms.PasswordInput, required=True)
 
 
-class SetUserImageForm(__ImageForm):
-    pass
-
-
 class CreateCategoryForm(__TitleForm):
     pass
 
 
-class CreateIssueForm(__TitleForm,  __ImageForm, __TextForm):
+class CreateIssueForm(__TitleForm, __TextForm):
     pass
 
 
-class CreateCommentForm(__TextForm, __ImageForm):
+class CreateCommentForm(__TextForm):
     pass
 
 
@@ -68,10 +61,10 @@ class UpdateCategoryForm(__TitleForm):
     pass
 
 
-class UpdateIssueForm(__ImageForm):
+class UpdateIssueForm(forms.Form):
     text = forms.CharField(label='Description', max_length=512, required=False)
     title = forms.CharField(label='Title', max_length=128, required=False)
 
 
-class UpdateCommentForm(__ImageForm):
+class UpdateCommentForm(forms.Form):
     text = forms.CharField(label='Description', max_length=512, required=False)
