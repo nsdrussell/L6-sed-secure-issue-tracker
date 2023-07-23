@@ -19,5 +19,5 @@ python manage.py runserver
 ```
 ## Help
 To erase the database and create some example items in the database, on the homepage, click **Create Example Database Rows**.
-This will create two user accounts, with which you can log in. The user account details are presented in the Create Example Database Rows page.
+This will seed the database with sample rows, including two user accounts, with which you can log in. The user account details are presented in Appendix B of the assignment text.
 To view the help file, on the homepage, click **View Help**.

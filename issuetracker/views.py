@@ -513,7 +513,7 @@ def create_example_rows(request):
 
         # example comment 1
         comment1 = Comment()
-        comment1.text = 'Try using the password "Password1#!" without the quotes.'
+        comment1.text = 'Try using the login details presented in the assignment, in Appendix B.\r\n If these details do not work, maybe seed the database again by clicking the Create Example Database Rows link on the homepage.'
         comment1.author = regular_user
         comment1.datetime_created = datetime.now()
         comment1.parent_issue = issue1
@@ -561,7 +561,7 @@ def create_example_rows(request):
 
         # example comment 4
         comment4 = Comment()
-        comment4.text = 'Unfortunately we cannot implement this at the moment. In the meantime I have deleted your account for you..'
+        comment4.text = 'As an example, the comment above has no author, to demonstrate that removing an account leaves items behind so that valuable comments and issues, are not lost.'
         comment4.author = admin_user
         comment4.datetime_created = datetime.now()
         comment4.parent_issue = issue3
