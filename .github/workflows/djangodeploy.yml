@@ -1,4 +1,4 @@
-name: Build, Test, deploy to Heroku
+name: Build, Test, deploy to Heroku from deploy branch
 
 on:
   workflow_dispatch: {}
