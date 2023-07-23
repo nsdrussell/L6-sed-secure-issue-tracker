@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    name: Build and test
     strategy:
       max-parallel: 4
       matrix:
@@ -30,6 +31,7 @@ jobs:
   heroku_git_deploy_job:
       runs-on: ubuntu-latest
       name: Git Deploy job- A job to deploy django app to heroku using git
+      needs: build
       steps:
         - name: Checkout
           uses: actions/checkout@v2
