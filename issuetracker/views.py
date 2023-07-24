@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 from django.http import Http404
 from django.http import HttpResponse
 import django.contrib.auth.password_validation as validators
+from datetime import datetime, timedelta
 
 from issuetracker import admin
 from .models import Category
@@ -30,7 +31,7 @@ def register(request):
     if request.method == 'POST':
         form = forms.RegisterForm(request.POST)
         if form.is_valid():
-            new_username = form.cleaned_data['username'].replace(' ', '')
+            new_username = form.cleaned_data['username'].replace(' ', '').lower()
             try:
                 user = __get_user_from_username(new_username)
                 error_messages.append(
@@ -39,10 +40,16 @@ def register(request):
                 pass
             password_validation = __validate_password_secure(
                 form.cleaned_data['password'])
+            password_validation = __validate_password_uppercase_and_symbol_rule(
+                form.cleaned_data['password'])
+
             if password_validation != None:
                 error_messages.append(password_validation)
             if form.cleaned_data['password'] != form.cleaned_data['confirm_password']:
                 error_messages.append('Passwords do not match.')
+            if new_username in form.data['password']:
+                error_messages.append('Password cannot contain the username.')
+
             if len(error_messages) == 0:
                 user = User()
                 user.username = new_username
@@ -53,6 +60,8 @@ def register(request):
                 user.is_admin = form.cleaned_data['is_admin']
                 user.datetime_created = datetime.now()
                 user.nickname = form.cleaned_data['nickname']
+                #set user.change_password_after to 30 days from now 
+                user.change_password_after = datetime.now() + timedelta(days=30)
                 user.save()
                 return redirect('/login')
             else:
@@ -61,27 +70,27 @@ def register(request):
         else:
             error_messages.append(
                 'There were issues registering:\r\n' + form.errors.as_text())
-
-    else:
         return render(request, 'register.html', {'message': '\r\n'.join(error_messages)})
 
 
 def login(request):
-    # testtest
-    # restrest1
+    if __check_user_is_authenticated(request):
+        return redirect('/categories')
+
     error_messages = []
     if request.method == 'POST':
         form = forms.LoginForm(request.POST)
         if form.is_valid():
             try:
-                user = __get_user_from_username(form.cleaned_data['username'])
+                user = __get_user_from_username(form.cleaned_data['username'].lower())
                 if hashers.check_password(form.cleaned_data['password'], user.password):
                     __set_session_vars(request, user, True)
                     return redirect('/categories')
                 else:
-                    error_messages.append('Invalid password')
+                    error_messages.append('Invalid username or password') 
+                    #this message wont be duplicated, because the other message is appended to the list after an error occurs, which will have before it gets here.
             except User.DoesNotExist:
-                error_messages.append('User does not exist, invalid username')
+                error_messages.append('Invalid username or password')
         else:
             error_messages.append(
                 'There was an issue logging in: ' + form.errors.as_text())
@@ -105,6 +114,8 @@ def logout(request):
 def user_options(request):
     if not __check_user_is_authenticated(request):
         return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     user = __get_user_from_request_user_id(request)
     return render(request, 'user_options.html', {'user': user})
 
@@ -112,7 +123,8 @@ def user_options(request):
 def change_nickname(request):
     if not __check_user_is_authenticated(request):
         return redirect('/login')
-
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     user = __get_user_from_request_user_id(request)
     messages = []
     if request.method == 'POST':
@@ -135,33 +147,39 @@ def change_nickname(request):
 def change_password(request):
     if not __check_user_is_authenticated(request):
         return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     messages = []
     if request.method == 'POST':
         form = forms.ChangePasswordForm(request.POST)
-        if form.is_valid():
-            password_validation = __validate_password_secure(
-                form.data['new_password'])
-            if password_validation != None:
-                messages.append(
-                    'Password does not meet requirements: '+password_validation)
-            if form.data['new_password'] != form.data['confirm_password']:
-                messages.append('Passwords do not match.')
-            if len(messages) == 0:
-                user = __get_user_from_request_user_id(request)
-                user.password = hashers.make_password(
-                    form.data['new_password'])
-                user.save()
-                messages.append('Password changed successfully.')
-        else:
-            messages.append(
-                'There was an issue changing password: ' + form.errors.as_text())
+        __change_password(request, messages, form)
+   
+    form_method = request.path
+    return render(request, 'change_password.html', {'message': '\r\n'.join(messages), 'form_method': form_method})
 
-    return render(request, 'change_password.html', {'message': '\r\n'.join(messages)})
+def force_change_password(request):
+    messages = []
+    if request.method == 'POST':
+        success = False
+        form = forms.ChangePasswordForm(request.POST)
+        success = __change_password(request, messages, form)
+        if success:
+            return redirect('/categories')
+    else:
+        if not __check_user_is_authenticated(request):
+            return redirect('/login')
+        if not __check_user_needs_to_change_password(request):
+            return redirect('/categories')
+
+    form_method = request.path
+    return render(request, 'force_change_password.html', {'message': '\r\n'.join(messages), 'form_method': form_method})
 
 
 def users_list(request):
     if not __check_user_is_authenticated_admin(request):
         return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     users = User.objects.all()
     return render(request, 'users_list.html', {'users': users})
 
@@ -169,6 +187,8 @@ def users_list(request):
 def admin_update_user(request, user_id):
     if not __check_user_is_authenticated_admin(request):
         return redirect('/categories')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
 
     messages = []
     try:
@@ -208,6 +228,8 @@ def admin_update_user(request, user_id):
 def admin_delete_user(request, user_id):
     if not __check_user_is_authenticated_admin(request):
         return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     try:
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
@@ -223,6 +245,8 @@ def admin_delete_user(request, user_id):
 def categories(request):
     if not __check_user_is_authenticated(request):
         return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     categories = Category.objects.all()
     return render(request, 'view_categories.html', {'categories': categories})
 
@@ -230,6 +254,8 @@ def categories(request):
 def category(request, category_id):
     if not __check_user_is_authenticated(request):
         return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     try:
         category = Category.objects.get(pk=category_id)
     except Category.DoesNotExist:
@@ -240,6 +266,8 @@ def category(request, category_id):
 def create_category(request):
     if not __check_user_is_authenticated(request):
         return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     if request.method == 'POST':
         form = forms.CreateCategoryForm(request.POST)
         if form.is_valid():
@@ -252,6 +280,8 @@ def create_category(request):
 def view_category(request, category_id):
     if not __check_user_is_authenticated(request):
         return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     try:
         category = Category.objects.get(pk=category_id)
     except Category.DoesNotExist:
@@ -264,6 +294,8 @@ def view_category(request, category_id):
 def delete_category(request, category_id):
     if not __check_user_is_authenticated_admin(request):
         return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     try:
         category = Category.objects.get(pk=category_id)
     except User.DoesNotExist:
@@ -278,6 +310,10 @@ def delete_category(request, category_id):
 
 
 def create_issue(request, category_id):
+    if not __check_user_is_authenticated(request):
+        return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     if request.method == 'POST':
         form = forms.CreateIssueForm(request.POST)
         if form.is_valid():
@@ -303,6 +339,10 @@ def create_issue(request, category_id):
 
 
 def update_issue(request, category_id, issue_id):
+    if not __check_user_is_authenticated(request):
+        return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     try:
         issue = Issue.objects.get(pk=issue_id)
     except Issue.DoesNotExist:
@@ -340,6 +380,10 @@ def update_issue(request, category_id, issue_id):
 
 
 def update_comment(request, category_id, issue_id, comment_id):
+    if not __check_user_is_authenticated(request):
+        return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     try:
         comment = Comment.objects.get(pk=comment_id)
     except Comment.DoesNotExist:
@@ -372,6 +416,10 @@ def update_comment(request, category_id, issue_id, comment_id):
 
 
 def update_category(request, category_id):
+    if not __check_user_is_authenticated(request):
+        return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     try:
         category = Category.objects.get(pk=category_id)
     except Category.DoesNotExist:
@@ -402,6 +450,10 @@ def update_category(request, category_id):
 
 
 def view_issue(request, category_id, issue_id):
+    if not __check_user_is_authenticated(request):
+        return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     try:
         category = Category.objects.get(pk=category_id)
     except Category.DoesNotExist:
@@ -417,6 +469,10 @@ def view_issue(request, category_id, issue_id):
 
 
 def create_comment(request, category_id, issue_id):
+    if not __check_user_is_authenticated(request):
+        return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     if request.method == 'POST':
         form = forms.CreateCommentForm(request.POST)
         if form.is_valid():
@@ -436,6 +492,8 @@ def create_comment(request, category_id, issue_id):
 def delete_comment(request, category_id, issue_id, comment_id):
     if not __check_user_is_authenticated_admin(request):
         return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     try:
         comment = Comment.objects.get(pk=comment_id)
     except User.DoesNotExist:
@@ -451,6 +509,8 @@ def delete_comment(request, category_id, issue_id, comment_id):
 def delete_issue(request, category_id, issue_id):
     if not __check_user_is_authenticated_admin(request):
         return redirect('/login')
+    if __check_user_needs_to_change_password(request):
+        return redirect('/force_change_password')
     try:
         issue = Issue.objects.get(pk=issue_id)
     except User.DoesNotExist:
@@ -582,7 +642,7 @@ def __check_user_has_update_permission(request, author_id):
 
 
 def __get_user_from_username(username):
-    user = User.objects.get(username=username)
+    user = User.objects.get(username= username)
     return user
 
 
@@ -598,6 +658,44 @@ def __validate_password_secure(password):
     except BaseException as e:
         return '\r\n'.join(e.messages)
 
+def __validate_password_uppercase_and_symbol_rule(password):
+    messages=[]
+    if not re.findall('[A-Z]', password):
+        messages.append("Password must contain at least 1 uppercase character.")
+    if not re.findall('[()[\]{}|\\`~!@#$%^&*_\-+=;:\'",<>./?]', password):
+        messages.append("Password must contain at least 1 symbol character.")
+
+    if len(messages) == 0:
+        return None
+    return '\r\n'.join(messages)
+
+def __change_password(request, messages, form):
+    success=False
+    if form.is_valid():
+        password_validation = __validate_password_secure(
+                form.data['new_password'])
+        if password_validation != None:
+            messages.append(
+                    'Password does not meet requirements: '+password_validation)
+        if form.data['new_password'] != form.data['confirm_password']:
+            messages.append('Passwords do not match.')
+        if form.data['old_password'] == form.data['new_password']:
+            messages.append('New password cannot be the same as old password.')
+        user = __get_user_from_request_user_id(request)
+        if user.username in form.data['new_password']:
+            messages.append('New password cannot contain the username.')
+        if len(messages) == 0:
+            user.password = hashers.make_password(
+                    form.data['new_password'])
+            #set user.change_password_after to 30 days from now 
+            user.change_password_after = datetime.now() + timedelta(days=30)
+            user.save()
+            messages.append('Password changed successfully.')
+            success=True
+    else:
+        messages.append(
+                'There was an issue changing password: ' + form.errors.as_text())
+    return success
 
 def __check_user_is_authenticated(request):
     if request.session.get('is_authenticated'):
@@ -609,6 +707,17 @@ def __check_user_is_authenticated(request):
 
     return False
 
+def __check_user_needs_to_change_password(request):
+    if request.session.get('is_authenticated'):
+        try:
+            user = __get_user_from_request_user_id(request)
+            now = datetime.now().timestamp() 
+            time_to_change = user.change_password_after.timestamp()
+            return time_to_change < now
+        except:
+            pass
+
+    return False
 
 # Method to set session vars for user upon login.
 # Use session vars, not cookie avoid storing sensitive

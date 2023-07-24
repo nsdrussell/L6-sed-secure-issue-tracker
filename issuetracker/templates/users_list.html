@@ -9,6 +9,7 @@
             <th>Nickame</th>
             <th>Creation date</th>
             <th>Is Admin?</th>
+            <th>Must Change Password after</th>
             <th>Options</th>
         </tr>
         {% for user in users %}
@@ -18,6 +19,7 @@
                 <td>{{ user.nickname }}</td>
                 <td>{{ user.datetime_created }}</td>
                 <td>{{ user.is_admin }}</td>
+                <td>{{ user.change_password_after|date:"Y-m-d H:i:s" }}</td>
                 <td>
                     <a href="users/{{ user.id }}/update">Edit</a>
                     <a href="users/{{ user.id }}/delete">Delete</a>
