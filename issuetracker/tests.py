@@ -2,6 +2,8 @@ from django.test import TestCase
 from datetime import datetime, timedelta
 from django.utils import timezone
 from .models import User, Category, Issue, Comment
+from django.urls import reverse
+from django.contrib.auth.hashers import make_password, check_password
 
 
 class UserModelTest(TestCase):
@@ -126,10 +128,8 @@ class CommentModelTest(TestCase):
         expected_text = f'Issue: {self.issue.title}\r\n>\r\nComment: Test Comment'
         self.assertEqual(self.comment.get_title_and_text(), expected_text)
 
-from django.test import TestCase
-from django.urls import reverse
-from django.contrib.auth.hashers import make_password, check_password
-from .models import User
+
+
 
 
 class ViewsTestCase(TestCase):
