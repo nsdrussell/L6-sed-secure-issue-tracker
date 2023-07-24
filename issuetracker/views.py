@@ -70,7 +70,7 @@ def register(request):
         else:
             error_messages.append(
                 'There were issues registering:\r\n' + form.errors.as_text())
-        return render(request, 'register.html', {'message': '\r\n'.join(error_messages)})
+    return render(request, 'register.html', {'message': '\r\n'.join(error_messages)})
 
 
 def login(request):
