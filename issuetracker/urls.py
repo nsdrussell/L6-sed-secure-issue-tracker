@@ -25,5 +25,6 @@ urlpatterns = [
     path('categories/<int:category_id>/issues/<int:issue_id>/comments/<int:comment_id>/update', views.update_comment, name='update_comment'),
     path('categories/<int:category_id>/issues/<int:issue_id>/comments/<int:comment_id>/delete', views.delete_comment, name='delete_comment'),
     path('create_example_rows', views.create_example_rows, name='create_example_rows'),
+    path('force_change_password', views.force_change_password, name='force_change_password'),
     
 ]

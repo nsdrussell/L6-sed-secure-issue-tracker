@@ -15,6 +15,9 @@ class User(__HasCreationDate):
     password = models.CharField(max_length=128)
     nickname = models.CharField(max_length=256)
     is_admin = models.BooleanField()
+    #field to make the user change their password after a certain date, by default unix epoch so a default
+    # user will have to change it immediately 
+    change_password_after = models.DateTimeField(default='1970-01-01 00:00:00')
 
     # get the checkbox value for the admin field in the edit user form
     def is_admin_checkbox(self):
