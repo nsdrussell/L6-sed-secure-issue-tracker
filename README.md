@@ -1,5 +1,7 @@
 # L6-sed-secure-issue-tracker
 
+Source code to a university project proving familiarity with some specific security best practices.
+
 ## Installation Prerequisites
 - Python 3.10 (64 bit)
 - Django 4.1
